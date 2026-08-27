@@ -121,7 +121,7 @@ const VIEWPOINT = [0, 3.4];
 
 const PALETTE = ['#c94a3b', '#4a90c2', '#e39a3c', '#d6b45a', '#5da35a', '#8a5aa6', '#c94a3b', '#e39a3c'];
 const KRAFT = '#d9b57a', WOOD = '#7a4b55', SOIL = '#2b2420', GREY = '#8b9096';
-const FONT = '"Trebuchet MS", "Segoe UI", Arial, sans-serif';
+const FONT = 'Arial, Helvetica, "Segoe UI", Roboto, sans-serif';
 
 /* ---------------- texturas dibujadas ---------------- */
 function tileTex() {
@@ -223,20 +223,23 @@ function lookTex(label) {
   return c.toDataURL();
 }
 function cardTex(text) {
-  const c = document.createElement('canvas'); c.width = 1024; c.height = 400; const g = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 460; const g = c.getContext('2d');
   const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
-  g.fillStyle = 'rgba(0,0,0,.2)'; rr(14, 14, 1000, 380, 28); g.fill();
-  g.fillStyle = '#fbf6ea'; rr(0, 0, 1000, 380, 28); g.fill(); g.strokeStyle = '#d9b57a'; g.lineWidth = 8; rr(0, 0, 1000, 380, 28); g.stroke();
-  g.fillStyle = '#2e2a24'; g.font = `500 54px ${FONT}`; g.textBaseline = 'top';
-  const words = text.split(' '); const lines = []; let line = '';
-  for (const w of words) { const t = line ? line + ' ' + w : w; if (g.measureText(t).width > 920) { lines.push(line); line = w; } else line = t; }
-  if (line) lines.push(line);
-  const lh = 64, y0 = 190 - (lines.length * lh) / 2;
-  lines.forEach((l, i) => g.fillText(l, 40, y0 + i * lh));
+  g.fillStyle = 'rgba(0,0,0,.2)'; rr(14, 14, 1000, 440, 28); g.fill();
+  g.fillStyle = '#fbf6ea'; rr(0, 0, 1000, 440, 28); g.fill(); g.strokeStyle = '#d9b57a'; g.lineWidth = 8; rr(0, 0, 1000, 440, 28); g.stroke();
+  // el texto se acomoda: si no entra, la letra se achica
+  const maxW = 900, maxH = 380; let size = 54, lines = [], lh = 0;
+  for (; size >= 30; size -= 3) {
+    g.font = `500 ${size}px ${FONT}`; lh = Math.round(size * 1.2); lines = []; let line = '';
+    for (const w of text.split(' ')) { const tt = line ? line + ' ' + w : w; if (g.measureText(tt).width > maxW) { lines.push(line); line = w; } else line = tt; }
+    if (line) lines.push(line);
+    if (lines.length * lh <= maxH) break;
+  }
+  g.fillStyle = '#2e2a24'; g.textBaseline = 'top'; g.textAlign = 'left';
+  const y0 = 220 - (lines.length * lh) / 2;
+  lines.forEach((l, i) => g.fillText(l, 50, y0 + i * lh));
   return c.toDataURL();
 }
-
-/* ---------------- helpers ---------------- */
 function M(src, rest) { const o = rest ? AFRAME.utils.styleParser.parse(rest) : {}; o.src = src; return o; }
 const world = document.getElementById('world');
 function E(tag, attrs, parent) {
@@ -414,8 +417,8 @@ function buildHotspots() {
     const card = E('a-entity', { scale: '0.001 0.001 0.001', visible: false,
       animation__open: 'property: scale; to: 1 1 1; dur: 300; easing: easeOutBack; startEvents: open',
       animation__close: 'property: scale; to: 0.001 0.001 0.001; dur: 160; easing: easeInQuad; startEvents: close' }, g);
-    E('a-plane', { position: '0 0.55 0', width: 1.9, height: 1.9 * 400 / 1024, material: M(cardTex(h.text), 'transparent: true; shader: flat; side: double') }, card);
-    E('a-plane', { position: '0 1.1 0.01', width: 1.5, height: 1.5 * 300 / 1024, material: M(pennantTex(h.title, color), 'transparent: true; alphaTest: 0.2; shader: flat; side: double') }, card);
+    E('a-plane', { position: '0 0.55 0', width: 1.9, height: 1.9 * 460 / 1024, material: M(cardTex(h.text), 'transparent: true; shader: flat; side: double; depthTest: false'), 'on-top': '' }, card);
+    E('a-plane', { position: '0 1.12 0.01', width: 1.5, height: 1.5 * 300 / 1024, material: M(pennantTex(h.title, color), 'transparent: true; alphaTest: 0.2; shader: flat; side: double; depthTest: false'), 'on-top': '' }, card);
     const hit = E('a-plane', { position: '0 0.6 0.02', width: 2.0, height: 1.5, material: 'opacity: 0; transparent: true; depthWrite: false', visible: false }, card);
 
     const sp = { h, tag, sq, card, hit, open: false, timer: null };
@@ -476,6 +479,14 @@ AFRAME.registerComponent('touch-look', {
     const end = () => { last = null; };
     const bind = c => { c.addEventListener('touchstart', start, { passive: true }); c.addEventListener('touchmove', move, { passive: true }); c.addEventListener('touchend', end); };
     if (canvas) bind(canvas); else this.el.sceneEl.addEventListener('render-target-loaded', () => bind(this.el.sceneEl.canvas));
+  }
+});
+
+/* carteles que siempre se ven, aunque haya un cantero adelante */
+AFRAME.registerComponent('on-top', {
+  init: function () {
+    const set = () => { const m = this.el.getObject3D('mesh'); if (m) { m.renderOrder = 1000; m.material.depthTest = false; m.material.needsUpdate = true; } };
+    set(); this.el.addEventListener('object3dset', set); this.el.addEventListener('materialtextureloaded', set);
   }
 });
 
