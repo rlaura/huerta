@@ -48,12 +48,12 @@
   <div class="card">
     <div class="tag">Escuela N° 22</div>
     <h1>Bienvenidos a<br><span>nuestra huerta</span></h1>
-    <p>Un recorrido en 3D por la terraza, con carteles en cada estación.</p>
+    <p>Un paseo en 3D por la terraza.</p>
     <ol>
       <li>Tocá <b>Empezar</b>.</li>
       <li>Tocá el ícono de <b>lentes</b> (abajo a la derecha) y poné el celular en los lentes 3D.</li>
-      <li>Con lentes: girá la cabeza y quedate mirando <b>un segundo</b> el cartel <b>SIGUIENTE</b> (abajo de cada cartel).</li>
-      <li>Sin lentes: mové el celular o <b>arrastrá con el dedo</b> para mirar, y <b>tocá</b> los carteles. Si ves solo el piso, tocá <b>Centrar vista</b>. En la compu, el mouse y las flechas del teclado.</li>
+      <li>Girá la cabeza y buscá los <b>puntitos brillantes</b> sobre los canteros. Quedate mirando uno <b>un segundo</b> y se abre la info. Mirá otro y cambia.</li>
+      <li>Sin lentes: mové el celular o <b>arrastrá con el dedo</b> para mirar, y <b>tocá</b> los puntitos. Si ves solo el piso, tocá <b>Centrar vista</b>.</li>
     </ol>
     <button id="start">Empezar</button>
   </div>
@@ -63,23 +63,21 @@
   <button id="center" type="button">⌖ Centrar vista</button>
   <button id="sensors" type="button">Sensores: probando…</button>
 </div>
-<div id="hint">Arrastrá con el dedo para mirar · tocá (o mirá fijo) SIGUIENTE para avanzar · "Centrar vista" si te perdés</div>
+<div id="hint">Mirá fijo (o tocá) un puntito brillante para abrir su info · "Centrar vista" si te perdés</div>
 
 <a-scene renderer="antialias: true; colorManagement: true" background="color: #c9d9e3" vr-mode-ui="enabled: true" loading-screen="enabled: false" fog="type: linear; color: #c9d9e3; near: 45; far: 140">
 
-  <a-entity id="rig" position="0 0 3.4">
+  <a-entity id="rig" position="1 0 -2.4">
     <a-entity id="cam" camera position="0 1.6 0" look-controls="pointerLockEnabled: false; magicWindowTrackingEnabled: true; touchEnabled: false" touch-look wasd-controls="enabled: false">
-      <a-entity cursor="fuse: true; fuseTimeout: 1500"
+      <a-entity cursor="fuse: true; fuseTimeout: 1000"
                 raycaster="objects: .clickable; far: 25"
                 position="0 0 -1"
                 geometry="primitive: ring; radiusInner: 0.012; radiusOuter: 0.02"
                 material="color: #ffffff; shader: flat; opacity: 0.9"
-                animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.35 0.35 0.35; dur: 1500; easing: easeInQuad"
+                animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.35 0.35 0.35; dur: 1000; easing: easeInQuad"
                 animation__reset="property: scale; startEvents: mouseleave, click; to: 1 1 1; dur: 150">
       </a-entity>
     </a-entity>
-    <!-- la foto envolvente viaja con el visitante -->
-    <a-entity id="viewer" position="0 0 0"></a-entity>
   </a-entity>
 
   <a-entity id="mouse-cursor" cursor="rayOrigin: mouse" raycaster="objects: .clickable; far: 30"></a-entity>
@@ -93,32 +91,28 @@
 
 <script>
 /* ============================================================
-   EDITÁ ACÁ los puntos del recorrido (títulos y textos).
-   pos = dónde se para el visitante (x, z) dentro de la terraza.
+   EDITÁ ACÁ los puntos de interés: posición del puntito (x, y, z), título y texto.
    ============================================================ */
-const SPOTS = [
-  { pos: [0, 3.4],
-    title: '¡Bienvenidos!',
-    text: 'Desde el pasillo, las puertas de la terraza decoradas por los chicos dan la bienvenida a la huerta de la Escuela N° 22.' },
-  { pos: [0.5, -1.4],
-    title: 'La terraza',
-    text: 'Un patio en altura, con red y rejas para que sea seguro. Los canteros son de madera reciclada y se riegan por goteo.' },
-  { pos: [-0.2, -3.2],
-    title: 'El cantero principal',
+const HOTSPOTS = [
+  { pos: [0, 1.35, -0.8],     title: '¡Bienvenidos!',
+    text: 'Las puertas de la terraza, decoradas por los chicos, dan la bienvenida a la huerta de la Escuela N° 22.' },
+  { pos: [0.6, 0.7, -1.3],    title: 'Riego por goteo',
+    text: 'Una manguera fina recorre todos los canteros y suelta el agua de a gotas, justo al pie de cada planta. Así no se desperdicia nada.' },
+  { pos: [-3.6, 0.75, -0.7],  title: 'Los plantines',
+    text: 'Acá esperan las plantas chiquitas que germinaron en el aula. Cuando tienen fuerza, se trasplantan a los canteros.' },
+  { pos: [-0.2, 1.65, -5.2],  title: 'El cantero principal',
     text: 'Lechuga, kale, frutillas, cebolla de verdeo, rúcula florecida y caléndulas con sus carteles. Cada planta tiene su lugar.' },
-  { pos: [-2.6, -5.6],
-    title: 'Aromáticas',
+  { pos: [-5.0, 1.75, -4.2],  title: 'Aromáticas',
     text: 'Lavanda, malvón de olor y otras aromáticas: atraen abejas y mariposas que polinizan la huerta.' },
-  { pos: [3.2, -2.6],
-    title: 'La trepadora',
-    text: 'Un macetón con una planta trepadora sostenida por una caña. Al lado, los plantines esperan para ser trasplantados.' },
-  { pos: [3.6, -6.4],
-    title: 'Huerta vertical',
+  { pos: [5.0, 1.9, -2.6],    title: 'La trepadora',
+    text: 'Un macetón con una planta trepadora sostenida por una caña, que crece buscando el sol.' },
+  { pos: [5.0, 1.75, -6.4],   title: 'Huerta vertical',
     text: 'Un panel de madera con tres canteros escalonados de lechuga. Cada nivel tiene su propia manguera de riego.' },
-  { pos: [0.8, -3.4],
-    title: 'Hasta la próxima',
-    text: 'La huerta cambia con las estaciones: cada visita se ve distinta. ¡Gracias por recorrerla!' },
+  { pos: [0, 1.65, -8.4],     title: 'Canteros del fondo',
+    text: 'Más lechugas, kale y flores. Los canteros están en alto para trabajar cómodos y para que la madera no se moje.' },
 ];
+/* dónde se para el visitante (x, z) */
+const VIEWPOINT = [1.0, -2.4];
 
 const PALETTE = ['#c94a3b', '#4a90c2', '#e39a3c', '#d6b45a', '#5da35a', '#8a5aa6', '#c94a3b', '#e39a3c'];
 const KRAFT = '#d9b57a', WOOD = '#7a4b55', SOIL = '#2b2420', GREY = '#8b9096';
@@ -375,62 +369,52 @@ function buildWorld() {
   E('a-sphere', { position: '-30 40 -60', radius: 4, color: '#fff7d6', shader: 'flat' });
 }
 
-/* ---------------- recorrido ---------------- */
+/* ---------------- puntos de interés ---------------- */
 const rig = document.getElementById('rig');
-const viewer = document.getElementById('viewer');
-let currentSpot = -1, markers = [], views = [];
+let current = null; const spots = [];
 
-function buildSpots() {
-  const spots = document.getElementById('spots');
-  SPOTS.forEach((s, i) => {
-    // marcador en el piso
-    const m = E('a-entity', { position: `${s.pos[0]} 0.02 ${s.pos[1]}` }, spots);
-    const ring = E('a-ring', { class: 'clickable', rotation: '-90 0 0', 'radius-inner': 0.34, 'radius-outer': 0.55, color: PALETTE[i % PALETTE.length], material: 'shader: flat; opacity: 0.9; side: double',
-      animation__pulse: 'property: scale; from: 1 1 1; to: 1.15 1.15 1; dir: alternate; loop: true; dur: 900; easing: easeInOutSine' }, m);
-    E('a-circle', { class: 'clickable', rotation: '-90 0 0', radius: 0.34, color: '#ffffff', material: 'shader: flat; opacity: 0.35; side: double' }, m);
-    const lbl = E('a-plane', { position: '0 0.85 0', width: 1.3, height: 1.1 * 300 / 1024, material: M(pennantTex(s.title, PALETTE[i % PALETTE.length]), 'transparent: true; alphaTest: 0.2; shader: flat; side: double'), 'face-camera': '' }, m);
-    m.querySelectorAll('.clickable').forEach(el => el.addEventListener('click', () => goTo(i)));
-    markers.push(m);
+function buildHotspots() {
+  const root = document.getElementById('spots');
+  HOTSPOTS.forEach((h, i) => {
+    const g = E('a-entity', { position: `${h.pos[0]} ${h.pos[1]} ${h.pos[2]}` }, root);
+    const color = PALETTE[i % PALETTE.length];
+    // puntito brillante que late
+    const dot = E('a-entity', { animation__pulse: 'property: scale; from: 1 1 1; to: 1.35 1.35 1.35; dir: alternate; loop: true; dur: 900; easing: easeInOutSine' }, g);
+    E('a-sphere', { radius: 0.075, color: '#fff3d6', material: 'shader: flat' }, dot);
+    E('a-ring', { 'radius-inner': 0.1, 'radius-outer': 0.135, color, material: 'shader: flat; side: double; opacity: 0.95', 'face-camera': '' }, dot);
+    // zona de mirada (invisible, más grande para que sea fácil apuntar)
+    const hit = E('a-sphere', { class: 'clickable', radius: 0.32, material: 'opacity: 0; transparent: true; depthWrite: false' }, g);
+    // cajita de info (se despliega)
+    // la cajita se agranda según qué tan lejos está del visitante, para que se lea igual
+    const dist = Math.hypot(h.pos[0] - VIEWPOINT[0], h.pos[1] - 1.6, h.pos[2] - VIEWPOINT[1]);
+    const f = Math.max(1, Math.min(2.2, dist / 3));
+    const card = E('a-entity', { position: '0 0.5 0', scale: '0.001 0.001 0.001', 'face-camera': '',
+      animation__open: `property: scale; to: ${f} ${f} ${f}; dur: 320; easing: easeOutBack; startEvents: open`,
+      animation__close: 'property: scale; to: 0.001 0.001 0.001; dur: 180; easing: easeInQuad; startEvents: close' }, g);
+    E('a-plane', { position: '0 0.36 0', width: 1.9, height: 1.9 * 400 / 1024, material: M(cardTex(h.text), 'transparent: true; shader: flat; side: double') }, card);
+    E('a-plane', { position: '0 0.9 0.01', width: 1.5, height: 1.5 * 300 / 1024, material: M(pennantTex(h.title, color), 'transparent: true; alphaTest: 0.2; shader: flat; side: double') }, card);
+    // línea del puntito a la cajita
+    E('a-cylinder', { position: '0 0.2 0', radius: 0.006, height: 0.3, color: '#fff3d6', material: 'shader: flat' }, card);
 
-    // cartel con la info (dentro del rig, siempre al frente del visitante)
-    const v = E('a-entity', { visible: false }, viewer);
-    const d = 2.6;
-    E('a-plane', { position: `0 2.5 ${-d}`, width: 2.2, height: 2.2 * 300 / 1024, material: M(pennantTex(s.title, PALETTE[i % PALETTE.length]), 'transparent: true; alphaTest: 0.2; shader: flat') }, v);
-    E('a-plane', { position: `0 1.55 ${-d}`, width: 3.0, height: 3.0 * 400 / 1024, material: M(cardTex(s.text), 'transparent: true; shader: flat') }, v);
-    const mk = (label, color, x, cb) => {
-      const b = E('a-plane', { class: 'nav', position: `${x} 0.7 ${-d + 0.3}`, rotation: '-25 0 0', width: 1.05, height: 1.05 * 300 / 1024,
-        material: M(pennantTex(label, color, 110), 'transparent: true; alphaTest: 0.2; shader: flat; side: double') }, v);
-      b.addEventListener('click', cb); return b;
-    };
-    if (i > 0) mk('◀ ANTERIOR', '#4a90c2', -0.7, () => goTo(i - 1));
-    if (i < SPOTS.length - 1) mk('SIGUIENTE ▶', '#5da35a', 0.7, () => goTo(i + 1));
-    else mk('VOLVER AL INICIO', '#c94a3b', 0.7, () => goTo(0));
-    views.push(v);
+    const sp = { g, dot, card, open: false };
+    hit.addEventListener('mouseenter', () => dot.setAttribute('animation__pulse', 'dur', 350));
+    hit.addEventListener('mouseleave', () => dot.setAttribute('animation__pulse', 'dur', 900));
+    hit.addEventListener('click', () => toggleSpot(sp));
+    spots.push(sp);
   });
 }
-function showView(on) {
-  if (currentSpot < 0) return;
-  const v = views[currentSpot];
-  v.setAttribute('visible', on); v.object3D.visible = on;
-  refreshClickables();
-}
-/* solo lo visible puede recibir la mirada/clic: los raycasters no distinguen objetos ocultos */
-function refreshClickables() {
-  views.forEach((v, k) => v.querySelectorAll('.nav').forEach(el => el.classList.toggle('clickable', k === currentSpot && v.object3D.visible)));
-  document.querySelectorAll('[raycaster]').forEach(el => el.components.raycaster && el.components.raycaster.refreshObjects());
+function toggleSpot(sp) {
+  if (current && current !== sp) { current.card.emit('close', null, false); current.open = false; }
+  sp.open = !sp.open;
+  sp.card.emit(sp.open ? 'open' : 'close', null, false);
+  current = sp.open ? sp : null;
 }
 
-function goTo(i) {
-  if (i === currentSpot) return;
-  const s = SPOTS[i];
-  views.forEach(v => { v.setAttribute('visible', false); v.object3D.visible = false; });
-  currentSpot = i; refreshClickables();
-  levelView(); faceViewer(i);
-  rig.removeAttribute('animation__move');
-  rig.setAttribute('animation__move', `property: position; to: ${s.pos[0]} 0 ${s.pos[1]}; dur: 900; easing: easeInOutQuad`);
-  markers.forEach((m, k) => m.setAttribute('visible', k !== i));
-  currentSpot = i;
-  setTimeout(() => { if (currentSpot === i) showView(true); }, 950);
+function levelView() {
+  const lc = document.querySelector('#cam').components['look-controls'];
+  if (!lc || (scene.is('vr-mode') && scene.checkHeadsetConnected())) return;
+  const dev = lc.magicWindowDeltaEuler ? lc.magicWindowDeltaEuler.x : 0;
+  lc.pitchObject.rotation.x = -dev;   // compensa cómo está inclinado el celular
 }
 
 /* mirar arrastrando con el dedo (giro e inclinación), solo fuera del modo lentes */
@@ -453,20 +437,6 @@ AFRAME.registerComponent('touch-look', {
   }
 });
 
-/* la foto y los botones siempre aparecen hacia donde está mirando el visitante */
-function faceViewer(i) {
-  const cam = document.querySelector('#cam');
-  const lc = cam.components['look-controls'];
-  const yaw = cam.object3D.rotation.y * 180 / Math.PI;   // giro real (celular + dedo)
-  viewer.setAttribute('rotation', `0 ${yaw} 0`);
-}
-function levelView() {
-  const lc = document.querySelector('#cam').components['look-controls'];
-  if (!lc || (scene.is('vr-mode') && scene.checkHeadsetConnected())) return;
-  const dev = lc.magicWindowDeltaEuler ? lc.magicWindowDeltaEuler.x : 0;
-  lc.pitchObject.rotation.x = -dev;   // compensa cómo está inclinado el celular
-}
-
 /* etiquetas que miran a la cámara */
 AFRAME.registerComponent('face-camera', {
   tick: function () {
@@ -477,14 +447,14 @@ AFRAME.registerComponent('face-camera', {
 });
 
 const scene = document.querySelector('a-scene');
-function init() { buildWorld(); buildSpots(); markers.forEach((m, k) => m.setAttribute('visible', k !== 0)); }
+function init() { buildWorld(); buildHotspots(); rig.setAttribute('position', `${VIEWPOINT[0]} 0 ${VIEWPOINT[1]}`); }
 if (scene.hasLoaded) init(); else scene.addEventListener('loaded', init);
 
 document.getElementById('start').addEventListener('click', () => {
   document.getElementById('intro').style.display = 'none';
   const hint = document.getElementById('hint'); hint.style.opacity = 1;
   setTimeout(() => hint.style.opacity = 0, 8000);
-  currentSpot = 0; levelView(); faceViewer(0); showView(true);
+  levelView();
   document.getElementById('ui').style.display = 'flex';
 });
 // ocultar los botones HTML dentro del modo lentes
@@ -521,12 +491,14 @@ sensorsBtn.addEventListener('click', async () => {
   }, 2000);
 });
 // centrar: nivelar y traer la foto al frente
-document.getElementById('center').addEventListener('click', () => { levelView(); if (currentSpot >= 0) faceViewer(currentSpot); });
-// teclado (en computadora): flechas o espacio
+document.getElementById('center').addEventListener('click', levelView);
+// teclado (en computadora): flechas o espacio recorren los puntos
+let kb = -1;
 window.addEventListener('keydown', e => {
-  if (currentSpot < 0) return;
-  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') goTo((currentSpot + 1) % SPOTS.length);
-  if (e.key === 'ArrowLeft') goTo((currentSpot - 1 + SPOTS.length) % SPOTS.length);
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') kb = (kb + 1) % spots.length;
+  else if (e.key === 'ArrowLeft') kb = (kb - 1 + spots.length) % spots.length;
+  else return;
+  if (!spots[kb].open) toggleSpot(spots[kb]);
 });
 </script>
 </body>
