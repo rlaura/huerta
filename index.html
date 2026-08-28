@@ -69,6 +69,7 @@
                 animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.35 0.35 0.35; dur: 1000; easing: easeInQuad"
                 animation__reset="property: scale; startEvents: mouseleave, click; to: 1 1 1; dur: 150">
       </a-entity>
+      <a-entity id="gaze" raycaster="objects: .gazable; far: 30; interval: 120"></a-entity>
     </a-entity>
   </a-entity>
 
@@ -89,7 +90,7 @@
    card  = dónde se abre el cartel (x, y, z); si falta, se abre arriba de la etiqueta
    ============================================================ */
 const HOTSPOTS = [
-  { tag: [0.75, 1.2, 0.04], yaw: 0, label: 'entrar', stand: [0.5, -1.6], card: [0.5, 1.5, -3.4],
+  { tag: [0.75, 1.2, 0.04], yaw: 0, label: 'entrar', stand: [0.5, -1.6], card: [0.5, 2.15, -3.4],
     title: '¡Bienvenidos!',
     text: 'Las puertas de la terraza, decoradas por los chicos, dan la bienvenida a la huerta de la EEM 7 DE 5 "Estación Buenos Aires". Mirá las etiquetas de cada cantero para recorrerla.' },
   { tag: [-0.2, 0.78, -4.49], yaw: 0, stand: [-0.2, -2.7],
@@ -110,7 +111,7 @@ const HOTSPOTS = [
   { tag: [2.5, 0.78, -8.09], yaw: 0, stand: [1.6, -6.4],
     title: 'Canteros del fondo',
     text: 'Más lechugas, kale y flores. Los canteros están en alto para trabajar cómodos y para que la madera no se moje.' },
-  { tag: [0, 0.78, -8.96], yaw: 0, stand: [0, -6.6], card: [2.4, 1.25, -8.7],
+  { tag: [0, 0.78, -8.96], yaw: 0, stand: [0, -6.2], card: [0, 0.55, -8.7], nopennant: true,
     title: 'El proyecto',
     text: 'Este recorrido virtual es parte del proyecto PaperBit de la EEM N°7 D.E.5. (Editá este texto con lo que quieras contar del proyecto.)' },
 ];
@@ -322,8 +323,8 @@ function buildWorld() {
   // póster del proyecto (a la derecha de las puertas, del lado de la terraza). Si hay logo, va acá.
   E('a-plane', { position: '3.9 2.1 -0.14', rotation: '0 180 0', width: 1.1, height: 1.1, material: M(LOGO, 'transparent: true; shader: flat') });
   // logo grande en el fondo, colgado de la reja
-  E('a-circle', { position: '0 2.25 -8.93', radius: 1.12, color: '#fbf6ea', material: 'shader: flat' });
-  E('a-plane', { position: '0 2.25 -8.92', width: 2.2, height: 2.2, material: M(LOGO, 'transparent: true; shader: flat') });
+  E('a-circle', { position: '0 2.5 -8.93', radius: 0.92, color: '#fbf6ea', material: 'shader: flat' });
+  E('a-plane', { position: '0 2.5 -8.92', width: 1.8, height: 1.8, material: M(LOGO, 'transparent: true; shader: flat') });
   // cartel SALIDA
   E('a-plane', { position: '0 2.62 0.14', width: 0.6, height: 0.18, material: M(pennantTex('SALIDA', '#2e8b3a', 150), 'transparent: true; shader: flat') });
 
@@ -418,13 +419,13 @@ function buildHotspots() {
       animation__open: 'property: scale; to: 1 1 1; dur: 300; easing: easeOutBack; startEvents: open',
       animation__close: 'property: scale; to: 0.001 0.001 0.001; dur: 160; easing: easeInQuad; startEvents: close' }, g);
     E('a-plane', { position: '0 0.55 0', width: 1.9, height: 1.9 * 460 / 1024, material: M(cardTex(h.text), 'transparent: true; shader: flat; side: double; depthTest: false'), 'on-top': '' }, card);
-    E('a-plane', { position: '0 1.12 0.01', width: 1.5, height: 1.5 * 300 / 1024, material: M(pennantTex(h.title, color), 'transparent: true; alphaTest: 0.2; shader: flat; side: double; depthTest: false'), 'on-top': '' }, card);
+    if (!h.nopennant) E('a-plane', { position: '0 1.12 0.01', width: 1.5, height: 1.5 * 300 / 1024, material: M(pennantTex(h.title, color), 'transparent: true; alphaTest: 0.2; shader: flat; side: double; depthTest: false'), 'on-top': '' }, card);
     const hit = E('a-plane', { position: '0 0.6 0.02', width: 2.0, height: 1.5, material: 'opacity: 0; transparent: true; depthWrite: false', visible: false }, card);
 
     const sp = { h, tag, sq, card, hit, open: false, timer: null };
     sq.addEventListener('click', () => goSpot(sp));
-    hit.addEventListener('mouseenter', () => { clearTimeout(sp.timer); });
-    hit.addEventListener('mouseleave', () => { clearTimeout(sp.timer); sp.timer = setTimeout(() => closeSpot(sp), 4000); });
+    hit.addEventListener('raycaster-intersected', () => { clearTimeout(sp.timer); });
+    hit.addEventListener('raycaster-intersected-cleared', () => { clearTimeout(sp.timer); sp.timer = setTimeout(() => closeSpot(sp), 4000); });
     spots.push(sp);
   });
 }
@@ -441,7 +442,7 @@ function goSpot(sp) {
 function openSpot(sp) {
   if (sp.open) return;
   sp.open = true; current = sp;
-  sq_hide(sp); sp.card.setAttribute('visible', true); sp.card.object3D.visible = true; sp.hit.classList.add('clickable');
+  sq_hide(sp); sp.card.setAttribute('visible', true); sp.card.object3D.visible = true; sp.hit.classList.add('gazable');
   sp.card.emit('open', null, false);
   clearTimeout(sp.timer); sp.timer = setTimeout(() => closeSpot(sp), 8000);   // por si nunca se lo mira
 }
@@ -449,7 +450,7 @@ function closeSpot(sp) {
   if (!sp.open) return;
   sp.open = false; if (current === sp) current = null;
   clearTimeout(sp.timer);
-  sp.card.emit('close', null, false); sp.hit.classList.remove('clickable');
+  sp.card.emit('close', null, false); sp.hit.classList.remove('gazable');
   setTimeout(() => { if (!sp.open) { sp.card.setAttribute('visible', false); sp.card.object3D.visible = false; sq_show(sp); } }, 180);
 }
 function sq_hide(sp) { sp.tag.setAttribute('visible', false); sp.tag.object3D.visible = false; sp.sq.classList.remove('clickable'); }
